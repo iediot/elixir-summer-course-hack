@@ -4,10 +4,13 @@ defmodule School.Package do
           weight: pos_integer(),
           destination: :domestic | :eu | :international,
           shipping_class: :standard | :express | :priority,
+          packet_contents: :drugs | :guns | :legal,
           declared_value: float(),
           has_customs_form: boolean(),
           has_insurance: boolean(),
-          has_fragile_sticker: boolean()
+          has_fragile_sticker: boolean(),
+          has_medical_reasoning: boolean(),
+          has_military_reasoning: boolean()
         }
 
   defstruct type: :letter,
