@@ -44,6 +44,11 @@ defmodule School.Logic do
     }
   end
 
+  # Contraband handling (drugs need medical reasoning, guns need military
+  # reasoning) is a core mechanic, not a rotating regulation, so these rules are
+  # always enforced regardless of which random rules are currently active.
+  @always_rules [:rule11, :rule12]
+
   def validate(package, rules_to_apply) do
     [
       rule1: &validate_rule1/1,
@@ -59,7 +64,7 @@ defmodule School.Logic do
       rule11: &validate_rule11/1,
       rule12: &validate_rule12/1
     ]
-    |> Enum.filter(fn {rule, _} -> rule in rules_to_apply end)
+    |> Enum.filter(fn {rule, _} -> rule in rules_to_apply or rule in @always_rules end)
     |> Enum.reduce_while({:valid, "success"}, fn {_rule, func}, acc ->
       case func.(package) do
         {:valid, _} -> {:cont, acc}
