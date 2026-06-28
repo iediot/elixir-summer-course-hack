@@ -219,9 +219,8 @@
 
     .player-avatar {
       width: 36px; height: 36px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--stamp-blue), #1a4a8a);
+      overflow: hidden;
       display: flex; align-items: center; justify-content: center;
-      color: white; font-weight: 700; font-size: 14px;
     }
 
     .player-name { font-weight: 600; font-size: 14px; color: var(--ink); }
@@ -669,7 +668,6 @@
   align-items: center;
   gap: 20px;
   position: relative;
-  overflow: hidden;
 }
 
 .ready-section::before {
@@ -677,6 +675,8 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
   background: linear-gradient(90deg,
     var(--stamp-red) 0%, var(--stamp-red) 33%,
     var(--manila-deep) 33%, var(--manila-deep) 66%,
@@ -755,3 +755,140 @@
   pointer-events: none;
 }
 
+
+    /* -- Avatars -- */
+
+    .avatar-svg { display: block; border-radius: 50%; }
+
+    .leaderboard-item .avatar-svg { flex-shrink: 0; }
+
+    .match-end-player { display: inline-flex; align-items: center; gap: 8px; }
+    .match-end-player .avatar-svg { border-radius: 50%; }
+
+    /* -- Avatar customizer (join screen) -- */
+
+    .join-form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .join-form .btn-ready { margin-top: 28px; }
+
+    .avatar-customizer {
+      width: 100%;
+      max-width: 300px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 14px;
+    }
+
+    .avatar-preview {
+      width: 96px; height: 96px;
+      align-self: center;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      border: 2px solid var(--paper-line);
+    }
+
+    .avatar-dropdown {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+    }
+
+    .avatar-row-label {
+      font-size: 10px; font-weight: 600;
+      color: var(--ink-muted);
+      text-transform: uppercase; letter-spacing: 1.5px;
+    }
+
+    .avatar-trigger {
+      width: 100%;
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--paper-line);
+      border-radius: var(--radius);
+      background: white;
+      cursor: pointer;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .avatar-trigger:hover { border-color: var(--manila-deep); }
+
+    .avatar-dropdown.open .avatar-trigger {
+      border-color: var(--stamp-blue);
+      box-shadow: 0 0 0 3px rgba(44, 111, 187, 0.1);
+    }
+
+    .avatar-caret {
+      margin-left: auto;
+      font-size: 11px; color: var(--ink-muted);
+      transition: transform 0.15s ease;
+    }
+
+    .avatar-dropdown.open .avatar-caret { transform: rotate(180deg); }
+
+    .avatar-menu {
+      position: absolute;
+      top: 100%; left: 0; right: 0;
+      z-index: 20;
+      margin-top: 4px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 6px;
+      background: white;
+      border: 1px solid var(--paper-line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .avatar-menu.is-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 4px;
+    }
+
+    .avatar-option {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 8px;
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.12s ease, border-color 0.12s ease;
+    }
+
+    .avatar-menu.is-grid .avatar-option {
+      justify-content: center;
+      padding: 5px;
+    }
+
+    .avatar-option:hover { background: rgba(245, 230, 200, 0.4); }
+
+    .avatar-option.selected {
+      border-color: var(--stamp-blue);
+      background: rgba(44, 111, 187, 0.08);
+    }
+
+    .swatch-chip {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      display: block;
+      flex-shrink: 0;
+    }
+
+    .swatch-name {
+      font-size: 12px; font-weight: 600;
+      color: var(--ink-soft);
+    }

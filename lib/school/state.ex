@@ -34,8 +34,8 @@ defmodule School.State do
     {:ok, state}
   end
 
-  def add_player(name, pid) do
-    GenServer.call(__MODULE__, {:add_player, name, pid})
+  def add_player(name, pid, avatar) do
+    GenServer.call(__MODULE__, {:add_player, name, pid, avatar})
   end
 
   def player_ready(name) do
@@ -61,20 +61,26 @@ defmodule School.State do
 
     readied_player = Map.put(player, :ready?, true)
     updated_player_list = [readied_player | remaining_players]
-    game_state = maybe_start_game(updated_player_list)
+    all_ready? = Enum.all?(updated_player_list, fn player -> player.ready? end)
 
-    new_state =
-      state
-      |> Map.put(:players, updated_player_list)
-      |> Map.put(:game_state, game_state)
+    {game_state, new_state} =
+      if all_ready? do
+        {:in_progress, start_match(state, updated_player_list)}
+      else
+        {:waiting, Map.put(state, :players, updated_player_list)}
+      end
+
+    # The player's score may have been reset by start_match, so reply with the
+    # freshest copy.
+    reply_player = Enum.find(new_state.players, fn player -> player.name == name end)
 
     Phoenix.PubSub.broadcast(
       School.PubSub,
       "game_room",
-      {:update_player_list, sort_by_score(updated_player_list)}
+      {:update_player_list, sort_by_score(new_state.players)}
     )
 
-    {:reply, {readied_player, game_state}, new_state}
+    {:reply, {reply_player, game_state}, new_state}
   end
 
   @impl true
@@ -118,12 +124,13 @@ defmodule School.State do
   end
 
   @impl true
-  def handle_call({:add_player, name, pid}, _from, state) do
+  def handle_call({:add_player, name, pid, avatar}, _from, state) do
     Process.monitor(pid)
 
     new_player = %Player{
       pid: pid,
-      name: name
+      name: name,
+      avatar: avatar
     }
 
     updated_player_list = [new_player | state.players]
@@ -147,41 +154,37 @@ defmodule School.State do
 
   @impl true
   def handle_info(:tick, state) do
-    Process.send_after(self(), :tick, 1_000)
-
     current_game_time = state.current_game_time
 
-    Phoenix.PubSub.broadcast(
-      School.PubSub,
-      "game_room",
-      {:tick_update, current_game_time}
-    )
-
-    state_with_new_rule =
-      if rem(current_game_time, 30) == 0 do
-        Phoenix.PubSub.broadcast(
-          School.PubSub,
-          "game_room",
-          :update_rules
-        )
-
-        maybe_activate_random_rule(state)
-      else
-        state
-      end
-
     if current_game_time > @max_game_time_seconds do
+      end_match(state)
+    else
+      Process.send_after(self(), :tick, 1_000)
+
       Phoenix.PubSub.broadcast(
         School.PubSub,
         "game_room",
-        {:game_ended, :ended}
+        {:tick_update, current_game_time}
       )
+
+      state_with_new_rule =
+        if rem(current_game_time, 30) == 0 do
+          Phoenix.PubSub.broadcast(
+            School.PubSub,
+            "game_room",
+            :update_rules
+          )
+
+          maybe_activate_random_rule(state)
+        else
+          state
+        end
+
+      new_state =
+        Map.put(state_with_new_rule, :current_game_time, current_game_time + 1)
+
+      {:noreply, new_state}
     end
-
-    new_state =
-      Map.put(state_with_new_rule, :current_game_time, current_game_time + 1)
-
-    {:noreply, new_state}
   end
 
   # handle killed PID
@@ -231,21 +234,42 @@ defmodule School.State do
     Enum.sort(player_list, fn p1, p2 -> p1.score > p2.score end)
   end
 
-  defp maybe_start_game(player_list) do
-    all_ready? = Enum.all?(player_list, fn player -> player.ready? end)
+  # Starts a fresh match: zero the clock, clear rules, reset everyone's score,
+  # and kick off the tick loop.
+  defp start_match(state, player_list) do
+    Phoenix.PubSub.broadcast(
+      School.PubSub,
+      "game_room",
+      {:game_start, :in_progress}
+    )
 
-    if all_ready? do
-      Phoenix.PubSub.broadcast(
-        School.PubSub,
-        "game_room",
-        {:game_start, :in_progress}
-      )
+    Process.send_after(self(), :tick, 1_000)
 
-      Process.send_after(self(), :tick, 1_000)
+    fresh_players = Enum.map(player_list, fn player -> Map.put(player, :score, 0) end)
 
-      :in_progress
-    else
-      :waiting
-    end
+    state
+    |> Map.put(:players, fresh_players)
+    |> Map.put(:current_game_time, 0)
+    |> Map.put(:active_rules, [])
+  end
+
+  # Ends the match: stop the tick (by not rescheduling) and mark every player
+  # not-ready so each must opt into the next match individually.
+  defp end_match(state) do
+    unready_players = Enum.map(state.players, fn player -> Map.put(player, :ready?, false) end)
+
+    Phoenix.PubSub.broadcast(
+      School.PubSub,
+      "game_room",
+      {:game_ended, :ended}
+    )
+
+    Phoenix.PubSub.broadcast(
+      School.PubSub,
+      "game_room",
+      {:update_player_list, sort_by_score(unready_players)}
+    )
+
+    {:noreply, Map.put(state, :players, unready_players)}
   end
 end

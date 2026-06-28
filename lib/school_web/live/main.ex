@@ -1,6 +1,7 @@
 defmodule SchoolWeb.MainLive do
   use SchoolWeb, :live_view
 
+  alias School.Avatar
   alias School.Logic
   alias School.State
 
@@ -28,19 +29,42 @@ defmodule SchoolWeb.MainLive do
       |> assign(:player_list, [])
       |> assign(:xray_active, false)
       |> assign(:rules_hidden, false)
+      |> assign(:avatar, Avatar.default())
+      |> assign(:avatar_open, nil)
 
     {:ok, new_socket}
   end
 
   @impl true
   def handle_event("join", %{"name" => name}, socket) do
-    local_player = State.add_player(name, self())
+    local_player = State.add_player(name, self(), socket.assigns.avatar)
 
     new_socket =
       socket
       |> assign(:local_player, local_player)
 
     {:noreply, new_socket}
+  end
+
+  @impl true
+  def handle_event("avatar_set", %{"field" => field, "index" => index}, socket) do
+    avatar =
+      Avatar.set(socket.assigns.avatar, String.to_existing_atom(field), String.to_integer(index))
+
+    new_socket =
+      socket
+      |> assign(:avatar, avatar)
+      |> assign(:avatar_open, nil)
+
+    {:noreply, new_socket}
+  end
+
+  @impl true
+  def handle_event("avatar_toggle", %{"field" => field}, socket) do
+    field = String.to_existing_atom(field)
+    open = if socket.assigns.avatar_open == field, do: nil, else: field
+
+    {:noreply, assign(socket, :avatar_open, open)}
   end
 
   @impl true
@@ -51,6 +75,21 @@ defmodule SchoolWeb.MainLive do
     new_socket =
       socket
       |> assign(:local_player, updated_local_player)
+
+    {:noreply, new_socket}
+  end
+
+  @impl true
+  def handle_event("new_match", _params, socket) do
+    # Return only this player to the lobby. They're already marked not-ready
+    # server-side by end_match, so they just need to ready up again.
+    local_player = Map.put(socket.assigns.local_player, :ready?, false)
+
+    new_socket =
+      socket
+      |> assign(:local_player, local_player)
+      |> assign(:game_state, :waiting)
+      |> assign(:score, 0)
 
     {:noreply, new_socket}
   end

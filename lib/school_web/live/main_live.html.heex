@@ -12,7 +12,7 @@
   <!-- COLUMN 1: CARD -->
   <%= if @local_player && @game_state == :in_progress do %>
     <section class="inspection-area">
-      <.score_banner player_name={@local_player.name} score={@score} />
+      <.score_banner player_name={@local_player.name} score={@score} avatar={@local_player.avatar} />
 
       <.match_time_remaining />
 
@@ -24,7 +24,7 @@
       />
     </section>
   <% else %>
-    <.ready_section local_player={@local_player} />
+    <.ready_section local_player={@local_player} avatar={@avatar} avatar_open={@avatar_open} />
   <% end %>
   
 <!-- COLUMN 2: RULES -->
