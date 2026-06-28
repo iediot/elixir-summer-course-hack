@@ -95,6 +95,10 @@ defmodule SchoolWeb.GameComponents do
             <div class="field-label">Declared Value</div>
             <div class="field-value">{@package.declared_value}</div>
           </div>
+          <div class="field">
+            <div class="field-label">Contents</div>
+            <div class="field-value">{capitalise(@package.packet_contents)}</div>
+          </div>
         </div>
 
         <div class="package-checks">
@@ -106,6 +110,12 @@ defmodule SchoolWeb.GameComponents do
           </span>
           <span :if={@package.has_fragile_sticker} class="check-tag has">
             <span class="check-dot"></span> Fragile Sticker
+          </span>
+          <span :if={@package.packet_contents == :drugs and @package.has_medical_reasoning} class="check-tag has">
+            <span class="check-dot"></span> Medical Reasoning
+          </span>
+          <span :if={@package.packet_contents == :guns and @package.has_military_reasoning} class="check-tag has">
+            <span class="check-dot"></span> Military Reasoning
           </span>
         </div>
 

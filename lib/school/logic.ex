@@ -11,7 +11,9 @@ defmodule School.Logic do
     rule7: "EU and international packages must use express or priority.",
     rule8: "Letters cannot have insurance.",
     rule9: "Standard shipping is only available for domestic packages under 2000g.",
-    rule10: "Fragile international packages over 1000g must use priority."
+    rule10: "Fragile international packages over 1000g must use priority.",
+    rule11: "Packages containing drugs require medical reasoning.",
+    rule12: "Packages containing guns require military reasoning."
   }
 
   def generate_package do
@@ -23,6 +25,9 @@ defmodule School.Logic do
     has_fragile_sticker = Enum.random([true, false])
     has_customs_form = Enum.random([true, false])
     has_insurance = Enum.random([true, false])
+    packet_contents = Enum.random([:drugs, :guns, :legal])
+    has_medical_reasoning = Enum.random([true, false])
+    has_military_reasoning = Enum.random([true, false])
 
     %Package{
       type: type,
@@ -32,7 +37,10 @@ defmodule School.Logic do
       declared_value: declared_value,
       has_fragile_sticker: has_fragile_sticker,
       has_customs_form: has_customs_form,
-      has_insurance: has_insurance
+      has_insurance: has_insurance,
+      packet_contents: packet_contents,
+      has_medical_reasoning: has_medical_reasoning,
+      has_military_reasoning: has_military_reasoning
     }
   end
 
@@ -47,7 +55,9 @@ defmodule School.Logic do
       rule7: &validate_rule7/1,
       rule8: &validate_rule8/1,
       rule9: &validate_rule9/1,
-      rule10: &validate_rule10/1
+      rule10: &validate_rule10/1,
+      rule11: &validate_rule11/1,
+      rule12: &validate_rule12/1
     ]
     |> Enum.filter(fn {rule, _} -> rule in rules_to_apply end)
     |> Enum.reduce_while({:valid, "success"}, fn {_rule, func}, acc ->
@@ -59,7 +69,18 @@ defmodule School.Logic do
   end
 
   @type rule ::
-          :rule1 | :rule2 | :rule3 | :rule4 | :rule5 | :rule6 | :rule7 | :rule8 | :rule9 | :rule10
+          :rule1
+          | :rule2
+          | :rule3
+          | :rule4
+          | :rule5
+          | :rule6
+          | :rule7
+          | :rule8
+          | :rule9
+          | :rule10
+          | :rule11
+          | :rule12
   @spec descriptions_by_rules(list(rule())) :: list(String.t())
   def descriptions_by_rules(rules) do
     Enum.reduce(rules, [], fn rule, acc ->
@@ -167,6 +188,22 @@ defmodule School.Logic do
   defp validate_rule10(_package) do
     {:valid, "rule10"}
   end
+
+  defp validate_rule11(%{packet_contents: :drugs, has_medical_reasoning: true}),
+    do: {:valid, "rule11"}
+
+  defp validate_rule11(%{packet_contents: :drugs, has_medical_reasoning: false}),
+    do: {:invalid, "drugs require medical reasoning"}
+
+  defp validate_rule11(_), do: {:valid, "rule11"}
+
+  defp validate_rule12(%{packet_contents: :guns, has_military_reasoning: true}),
+    do: {:valid, "rule12"}
+
+  defp validate_rule12(%{packet_contents: :guns, has_military_reasoning: false}),
+    do: {:invalid, "guns require military reasoning"}
+
+  defp validate_rule12(_), do: {:valid, "rule12"}
 
   defp calculate_weight(:letter), do: Enum.random(1..600)
   defp calculate_weight(_), do: Enum.random(1..10000)
