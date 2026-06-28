@@ -15,9 +15,7 @@ defmodule School.State do
     :rule7,
     :rule8,
     :rule9,
-    :rule10,
-    :rule11,
-    :rule12
+    :rule10
   ]
   @max_game_time_seconds 240
 
