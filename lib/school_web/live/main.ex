@@ -31,9 +31,12 @@ defmodule SchoolWeb.MainLive do
       |> assign(:rules_hidden, false)
       |> assign(:avatar, Avatar.default())
       |> assign(:avatar_open, nil)
+      |> assign(:rush_hour, false)
 
     {:ok, new_socket}
   end
+
+  @impl true
 
   @impl true
   def handle_event("join", %{"name" => name}, socket) do
@@ -148,8 +151,11 @@ defmodule SchoolWeb.MainLive do
   def handle_info({:tick_update, current_game_time}, socket) do
     width = build_game_time_loading_bar(current_game_time)
 
+    is_rush = current_game_time >= 210
+
     new_socket =
       socket
+      |> assign(:rush_hour, is_rush)
       |> push_event("timer-tick", %{time: current_game_time, width: width})
 
     {:noreply, new_socket}

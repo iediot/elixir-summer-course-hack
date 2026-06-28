@@ -8,7 +8,7 @@
   </div>
 </header>
 
-<main class="game-layout">
+<main class={["game-layout", @rush_hour && "rush-hour-mode"]}>
   <!-- COLUMN 1: CARD -->
   <%= if @local_player && @game_state == :in_progress do %>
     <section class="inspection-area">

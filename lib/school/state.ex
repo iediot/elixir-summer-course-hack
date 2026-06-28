@@ -70,8 +70,6 @@ defmodule School.State do
         {:waiting, Map.put(state, :players, updated_player_list)}
       end
 
-    # The player's score may have been reset by start_match, so reply with the
-    # freshest copy.
     reply_player = Enum.find(new_state.players, fn player -> player.name == name end)
 
     Phoenix.PubSub.broadcast(
@@ -101,10 +99,15 @@ defmodule School.State do
         do: :correct,
         else: :incorrect
 
+    is_rush? = state.current_game_time >= 210
+
     score_delta =
-      if decision == :correct,
-        do: 1,
-        else: -1
+      case {decision, is_rush?} do
+        {:correct, true}   -> 4
+        {:incorrect, true} -> -4
+        {:correct, false}  -> 2
+        {:incorrect, false}-> -1
+      end
 
     new_score = max(player.score + score_delta, 0)
 

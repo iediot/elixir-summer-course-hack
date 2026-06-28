@@ -892,3 +892,30 @@
       font-size: 12px; font-weight: 600;
       color: var(--ink-soft);
     }
+    .rush-hour-mode {
+      animation: rushHourPulse 1.5s infinite;
+      border-radius: var(--radius-lg);
+    }
+
+    @keyframes rushHourPulse {
+      0%   { box-shadow: inset 0 0 0px rgba(231, 76, 60, 0); }
+      50%  { box-shadow: inset 0 0 50px rgba(231, 76, 60, 0.25); }
+      100% { box-shadow: inset 0 0 0px rgba(231, 76, 60, 0); }
+    }
+
+    .rush-hour-mode .card-timer-seconds {
+      color: var(--stamp-red-light);
+      animation: timerPanic 0.5s infinite;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    @keyframes timerPanic {
+      0%   { opacity: 1; }
+      50%  { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    .rush-hour-mode .card-timer-fill {
+      background: linear-gradient(90deg, var(--stamp-red), var(--stamp-red-light)) !important;
+    }
