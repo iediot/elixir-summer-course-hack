@@ -38,6 +38,7 @@ defmodule SchoolWeb.GameComponents do
   attr :package, :map, required: true
   attr :timestamp, :integer, required: true
   attr :validation_result, :atom, required: true
+  attr :xray_active, :boolean, required: true
 
   def package_inspection_form(assigns) do
     ~H"""
@@ -97,7 +98,12 @@ defmodule SchoolWeb.GameComponents do
           </div>
           <div class="field">
             <div class="field-label">Contents</div>
-            <div class="field-value">{capitalise(@package.packet_contents)}</div>
+            <div class="field-value" style={unless @xray_active, do: "filter: blur(4px); user-select: none;"}>
+              {capitalise(@package.packet_contents)}
+            </div>
+            <button phx-click="toggle_xray" class="xray-btn">
+              {if @xray_active, do: "Hide", else: "X-Ray"}
+            </button>
           </div>
         </div>
 

@@ -26,6 +26,7 @@ defmodule SchoolWeb.MainLive do
       |> assign(:rule_descriptions, rule_descriptions)
       |> assign(:score, 0)
       |> assign(:player_list, [])
+      |> assign(:xray_active, false)
 
     {:ok, new_socket}
   end
@@ -54,6 +55,11 @@ defmodule SchoolWeb.MainLive do
   end
 
   @impl true
+  def handle_event("toggle_xray", _params, socket) do
+    {:noreply, assign(socket, :xray_active, !socket.assigns.xray_active)}
+  end
+
+  @impl true
   def handle_event("decline", _params, socket) do
     new_socket = validation("swipe-left", :invalid, socket)
 
@@ -74,6 +80,7 @@ defmodule SchoolWeb.MainLive do
     new_socket =
       socket
       |> assign(:package, package)
+      |> assign(:xray_active, false)
       |> push_event("reset-package-card", %{})
 
     {:noreply, new_socket}
