@@ -99,7 +99,7 @@ defmodule SchoolWeb.GameComponents do
           <div class="field">
             <div class="field-label">Contents</div>
             <div class="field-value" style={unless @xray_active, do: "filter: blur(4px); user-select: none;"}>
-              {capitalise(@package.packet_contents)}
+              {if @xray_active, do: capitalise(@package.packet_contents), else: "Unknown"}
             </div>
             <button phx-click="toggle_xray" class="xray-btn">
               {if @xray_active, do: "Hide", else: "X-Ray"}
