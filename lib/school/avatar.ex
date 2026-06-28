@@ -35,8 +35,6 @@ defmodule School.Avatar do
     "#475569"
   ]
 
-  # Hair length/style is chosen independently of colour. ":none" (Bald) ignores
-  # whatever colour is selected.
   @hair_styles [
     %{style: :none, label: "Bald"},
     %{style: :short, label: "Short"},

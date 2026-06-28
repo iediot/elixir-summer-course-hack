@@ -121,7 +121,7 @@ defmodule School.State do
 
     new_state = Map.put(state, :players, updated_player_list)
 
-    {:reply, {updated_player, decision, validation_msg}, new_state}
+    {:reply, {updated_player, decision, validation_msg, score_delta}, new_state}
   end
 
   @impl true
@@ -235,8 +235,6 @@ defmodule School.State do
     Enum.sort(player_list, fn p1, p2 -> p1.score > p2.score end)
   end
 
-  # Starts a fresh match: zero the clock, clear rules, reset everyone's score,
-  # and kick off the tick loop.
   defp start_match(state, player_list) do
     Phoenix.PubSub.broadcast(
       School.PubSub,
@@ -254,8 +252,6 @@ defmodule School.State do
     |> Map.put(:active_rules, [])
   end
 
-  # Ends the match: stop the tick (by not rescheduling) and mark every player
-  # not-ready so each must opt into the next match individually.
   defp end_match(state) do
     unready_players = Enum.map(state.players, fn player -> Map.put(player, :ready?, false) end)
 

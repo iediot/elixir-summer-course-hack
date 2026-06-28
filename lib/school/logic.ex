@@ -44,9 +44,6 @@ defmodule School.Logic do
     }
   end
 
-  # Contraband handling (drugs need medical reasoning, guns need military
-  # reasoning) is a core mechanic, not a rotating regulation, so these rules are
-  # always enforced regardless of which random rules are currently active.
   @always_rules [:rule11, :rule12]
 
   def validate(package, rules_to_apply) do

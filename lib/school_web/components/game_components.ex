@@ -114,6 +114,7 @@ defmodule SchoolWeb.GameComponents do
   attr :package, :map, required: true
   attr :timestamp, :integer, required: true
   attr :validation_result, :atom, required: true
+  attr :score_delta, :integer, required: true
   attr :xray_active, :boolean, required: true
 
   def package_inspection_form(assigns) do
@@ -124,14 +125,14 @@ defmodule SchoolWeb.GameComponents do
           <div class="stamp-result" id={"card-#{@timestamp}"}>
             <div class="stamp-mark approved">
               <span class="stamp-label">Approved</span>
-              <span class="stamp-points">+1</span>
+              <span class="stamp-points">{format_points(@score_delta)}</span>
             </div>
           </div>
         <% :incorrect -> %>
           <div class="stamp-result" id={"card-#{@timestamp}"}>
             <div class="stamp-mark rejected">
               <span class="stamp-label">Rejected</span>
-              <span class="stamp-points">−1</span>
+              <span class="stamp-points">{format_points(@score_delta)}</span>
             </div>
           </div>
         <% nil -> %>
@@ -370,6 +371,7 @@ defmodule SchoolWeb.GameComponents do
 
   attr :rule_descriptions, :list, required: true
   attr :rules_hidden, :boolean, default: false
+  attr :blackout_remaining, :integer, default: 0
 
   def postal_regulations(assigns) do
     ~H"""
@@ -383,7 +385,7 @@ defmodule SchoolWeb.GameComponents do
           <span style="font-size: 48px;">⚠️</span>
           <h2 style="font-family: 'DM Mono', monospace; font-weight: bold; margin-top: 10px;">SYSTEM LOCKDOWN</h2>
           <p style="font-size: 12px; margin-top: 10px;">SEVERE VIOLATION DETECTED.<br/>CONTRABAND MISHANDLED.</p>
-          <p style="font-size: 14px; font-weight: bold; margin-top: 20px;">REGULATIONS SUSPENDED FOR 15s</p>
+          <p style="font-size: 14px; font-weight: bold; margin-top: 20px;">REGULATIONS SUSPENDED FOR {@blackout_remaining}s</p>
         </div>
       <% else %>
         <%= for {desc, index} <- Enum.with_index(@rule_descriptions) do %>
@@ -451,4 +453,6 @@ defmodule SchoolWeb.GameComponents do
     Enum.at(["🥇", "🥈", "🥉"], place)
   end
 
+  def format_points(delta) when delta >= 0, do: "+#{delta}"
+  def format_points(delta), do: "−#{abs(delta)}"
 end

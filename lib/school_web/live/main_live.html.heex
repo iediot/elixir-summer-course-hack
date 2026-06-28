@@ -20,6 +20,7 @@
         package={@package}
         timestamp={@timestamp}
         validation_result={@validation_result}
+        score_delta={@score_delta}
         xray_active={@xray_active}
       />
     </section>
@@ -28,7 +29,11 @@
   <% end %>
   
 <!-- COLUMN 2: RULES -->
-    <.postal_regulations rule_descriptions={@rule_descriptions} rules_hidden={@rules_hidden} />
+    <.postal_regulations
+      rule_descriptions={@rule_descriptions}
+      rules_hidden={@rules_hidden}
+      blackout_remaining={@blackout_remaining}
+    />
   
 <!-- COLUMN 3: LEADERBOARD -->
   <.leaderboard player_list={@player_list} />

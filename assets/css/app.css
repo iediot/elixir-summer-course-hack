@@ -756,16 +756,12 @@
 }
 
 
-    /* -- Avatars -- */
-
     .avatar-svg { display: block; border-radius: 50%; }
 
     .leaderboard-item .avatar-svg { flex-shrink: 0; }
 
     .match-end-player { display: inline-flex; align-items: center; gap: 8px; }
     .match-end-player .avatar-svg { border-radius: 50%; }
-
-    /* -- Avatar customizer (join screen) -- */
 
     .join-form {
       width: 100%;
@@ -918,4 +914,10 @@
 
     .rush-hour-mode .card-timer-fill {
       background: linear-gradient(90deg, var(--stamp-red), var(--stamp-red-light)) !important;
+    }
+
+    @keyframes pulse {
+      0%   { opacity: 1; }
+      50%  { opacity: 0.45; }
+      100% { opacity: 1; }
     }

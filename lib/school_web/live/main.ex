@@ -22,6 +22,7 @@ defmodule SchoolWeb.MainLive do
       |> assign(:package, package)
       |> assign(:timestamp, nil)
       |> assign(:validation_result, :correct)
+      |> assign(:score_delta, 0)
       |> assign(:game_state, :waiting)
       |> assign(:active_rules, active_rules)
       |> assign(:rule_descriptions, rule_descriptions)
@@ -29,14 +30,13 @@ defmodule SchoolWeb.MainLive do
       |> assign(:player_list, [])
       |> assign(:xray_active, false)
       |> assign(:rules_hidden, false)
+      |> assign(:blackout_remaining, 0)
       |> assign(:avatar, Avatar.default())
       |> assign(:avatar_open, nil)
       |> assign(:rush_hour, false)
 
     {:ok, new_socket}
   end
-
-  @impl true
 
   @impl true
   def handle_event("join", %{"name" => name}, socket) do
@@ -84,8 +84,6 @@ defmodule SchoolWeb.MainLive do
 
   @impl true
   def handle_event("new_match", _params, socket) do
-    # Return only this player to the lobby. They're already marked not-ready
-    # server-side by end_match, so they just need to ready up again.
     local_player = Map.put(socket.assigns.local_player, :ready?, false)
 
     new_socket =
@@ -183,34 +181,47 @@ defmodule SchoolWeb.MainLive do
   end
 
   @impl true
-  def handle_info(:unhide_rules, socket) do
-    {:noreply, assign(socket, :rules_hidden, false)}
+  def handle_info(:blackout_tick, socket) do
+    remaining = socket.assigns.blackout_remaining - 1
+
+    new_socket =
+      if remaining <= 0 do
+        socket
+        |> assign(:rules_hidden, false)
+        |> assign(:blackout_remaining, 0)
+      else
+        Process.send_after(self(), :blackout_tick, 1_000)
+        assign(socket, :blackout_remaining, remaining)
+      end
+
+    {:noreply, new_socket}
   end
 
   defp validation(swipe_direction, expected, socket) do
     package = socket.assigns.package
 
-    {updated_player, decision, validation_msg} =
+    {updated_player, decision, validation_msg, score_delta} =
       State.update_player_score(self(), package, expected)
 
-    fatal_error =
-      if decision == :incorrect and package.packet_contents in [:drugs, :guns] do
-        true
-      else
-        false
-      end
+    fatal_error = decision == :incorrect and package.packet_contents in [:drugs, :guns]
+    already_hidden = socket.assigns.rules_hidden
 
-    if fatal_error do
-      Process.send_after(self(), :unhide_rules, 15_000)
+    if fatal_error and not already_hidden do
+      Process.send_after(self(), :blackout_tick, 1_000)
     end
+
+    blackout_remaining =
+      if fatal_error, do: 15, else: socket.assigns.blackout_remaining
 
     new_socket =
       socket
       |> assign(:validation_result, decision)
       |> assign(:validation_msg, validation_msg)
+      |> assign(:score_delta, score_delta)
       |> assign(:local_player, updated_player)
       |> assign(:score, updated_player.score)
-      |> assign(:rules_hidden, fatal_error or socket.assigns[:rules_hidden])
+      |> assign(:rules_hidden, fatal_error or already_hidden)
+      |> assign(:blackout_remaining, blackout_remaining)
       |> push_event(swipe_direction, %{})
 
     Process.send_after(self(), :next_package, 1_000)
