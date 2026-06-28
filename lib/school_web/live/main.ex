@@ -27,6 +27,7 @@ defmodule SchoolWeb.MainLive do
       |> assign(:score, 0)
       |> assign(:player_list, [])
       |> assign(:xray_active, false)
+      |> assign(:rules_hidden, false)
 
     {:ok, new_socket}
   end
@@ -136,11 +137,27 @@ defmodule SchoolWeb.MainLive do
     {:noreply, new_socket}
   end
 
+  @impl true
+  def handle_info(:unhide_rules, socket) do
+    {:noreply, assign(socket, :rules_hidden, false)}
+  end
+
   defp validation(swipe_direction, expected, socket) do
     package = socket.assigns.package
 
     {updated_player, decision, validation_msg} =
       State.update_player_score(self(), package, expected)
+
+    fatal_error =
+      if decision == :incorrect and package.packet_contents in [:drugs, :guns] do
+        true
+      else
+        false
+      end
+
+    if fatal_error do
+      Process.send_after(self(), :unhide_rules, 15_000)
+    end
 
     new_socket =
       socket
@@ -148,6 +165,7 @@ defmodule SchoolWeb.MainLive do
       |> assign(:validation_msg, validation_msg)
       |> assign(:local_player, updated_player)
       |> assign(:score, updated_player.score)
+      |> assign(:rules_hidden, fatal_error or socket.assigns[:rules_hidden])
       |> push_event(swipe_direction, %{})
 
     Process.send_after(self(), :next_package, 1_000)

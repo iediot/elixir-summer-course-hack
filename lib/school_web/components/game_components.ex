@@ -184,6 +184,34 @@ defmodule SchoolWeb.GameComponents do
   end
 
   attr :rule_descriptions, :list, required: true
+  attr :rules_hidden, :boolean, default: false # <-- Adaugă atributul aici
+
+  def postal_regulations(assigns) do
+    ~H"""
+    <div class="rules-reference">
+      <div class="rules-header">
+        <span class="rules-title">Postal Regulations</span>
+      </div>
+
+      <%= if @rules_hidden do %>
+        <div style="padding: 40px 20px; text-align: center; color: var(--stamp-red); animation: pulse 1s infinite;">
+          <span style="font-size: 48px;">⚠️</span>
+          <h2 style="font-family: 'DM Mono', monospace; font-weight: bold; margin-top: 10px;">SYSTEM LOCKDOWN</h2>
+          <p style="font-size: 12px; margin-top: 10px;">SEVERE VIOLATION DETECTED.<br/>CONTRABAND MISHANDLED.</p>
+          <p style="font-size: 14px; font-weight: bold; margin-top: 20px;">REGULATIONS SUSPENDED FOR 15s</p>
+        </div>
+      <% else %>
+        <%= for {desc, index} <- Enum.with_index(@rule_descriptions) do %>
+          <div class="rules-list">
+            <div class="rule-item">
+              <span class="rule-number">{index + 1}</span><span>{desc}</span>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+    """
+  end
 
   def postal_regulations(assigns) do
     ~H"""
@@ -252,4 +280,5 @@ defmodule SchoolWeb.GameComponents do
   def get_medal(place) do
     Enum.at(["🥇", "🥈", "🥉"], place)
   end
+
 end
