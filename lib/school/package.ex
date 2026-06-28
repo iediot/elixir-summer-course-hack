@@ -17,8 +17,11 @@ defmodule School.Package do
             weight: 100,
             destination: :domestic,
             shipping_class: :standard,
+            packet_contents: :legal,
             declared_value: 100,
             has_customs_form: true,
             has_insurance: true,
-            has_fragile_sticker: true
+            has_fragile_sticker: true,
+            has_medical_reasoning: false,
+            has_military_reasoning: false
 end
